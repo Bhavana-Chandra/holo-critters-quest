@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Info } from "lucide-react";
 import animalsData from "@/data/animals.json";
+import tigerHologramMp4 from "@/assets/bengal tiger  hologram video.mp4";
 
 type HabitatType = "Forest" | "Ocean" | "Desert" | "Arctic";
 
@@ -12,6 +13,9 @@ const HologramViewer = () => {
 
   const animals = habitat ? animalsData[habitat] : [];
   const animal = animals.find(a => a.id === animalId);
+  // Resolve local asset overrides (e.g., Bengal Tiger has a bundled mp4 in src/assets)
+  const resolvedVideoUrl: string | undefined =
+    animal?.id === "tiger" ? (tigerHologramMp4 as unknown as string) : (animal as any)?.videoUrl;
 
   if (!animal || !habitat) {
     return (
@@ -44,30 +48,22 @@ const HologramViewer = () => {
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
               {/* Top */}
               <div className="col-span-2 bg-gradient-to-b from-white/5 to-transparent flex items-end justify-center pb-4">
-                <div className="text-6xl transform rotate-180">
-                  {getAnimalEmoji(animal.name)}
-                </div>
+                {renderMedia(resolvedVideoUrl, "rotate-180", animal.name)}
               </div>
               
               {/* Left */}
               <div className="bg-gradient-to-r from-white/5 to-transparent flex items-center justify-end pr-4">
-                <div className="text-6xl transform -rotate-90">
-                  {getAnimalEmoji(animal.name)}
-                </div>
+                {renderMedia(resolvedVideoUrl, "-rotate-90", animal.name)}
               </div>
               
               {/* Right */}
               <div className="bg-gradient-to-l from-white/5 to-transparent flex items-center justify-start pl-4">
-                <div className="text-6xl transform rotate-90">
-                  {getAnimalEmoji(animal.name)}
-                </div>
+                {renderMedia(resolvedVideoUrl, "rotate-90", animal.name)}
               </div>
               
               {/* Bottom */}
               <div className="col-span-2 bg-gradient-to-t from-white/5 to-transparent flex items-start justify-center pt-4">
-                <div className="text-6xl">
-                  {getAnimalEmoji(animal.name)}
-                </div>
+                {renderMedia(resolvedVideoUrl, "", animal.name)}
               </div>
             </div>
 
@@ -151,6 +147,29 @@ const getAnimalEmoji = (name: string): string => {
     "Emperor Penguin": "🐧"
   };
   return emojiMap[name] || "🦁";
+};
+
+// Render a small media pane rotated appropriately for a hologram quadrant
+const renderMedia = (url: string | undefined, rotationClass: string, animalName: string) => {
+  const containerClass = `w-32 h-20 sm:w-40 sm:h-24 md:w-56 md:h-32 lg:w-64 lg:h-40 transform ${rotationClass} rounded-md overflow-hidden shadow-lg`;
+  if (url) {
+    return (
+      <video
+        className={containerClass}
+        src={url}
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+    );
+  }
+  // Fallback to emoji if no videoUrl is provided
+  return (
+    <div className={`text-6xl transform ${rotationClass}`}>
+      {getAnimalEmoji(animalName)}
+    </div>
+  );
 };
 
 export default HologramViewer;
